@@ -69,7 +69,12 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent font-serif tracking-tight">InstaKilogram</h1>
-                    <p class="text-[11px] text-slate-500 font-medium">GMT+7 Classroom Journal</p>
+                    <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                        <span>GMT+7 Classroom Journal</span>
+                        <span id="cloud-status-badge" class="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold text-[9px] flex items-center gap-1">
+                            <i class="fa-solid fa-circle-notch animate-spin"></i> Connecting Cloud
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -82,18 +87,13 @@
 
             <!-- Header Action Controls -->
             <div class="flex items-center space-x-2">
-                <!-- Backup & Restore -->
+                <!-- Export Backup -->
                 <button id="btn-export" title="Export Backup" class="p-2 text-slate-600 hover:text-rose-600 hover:bg-slate-50 rounded-lg transition text-xs flex items-center gap-1 border border-slate-200">
                     <i class="fa-solid fa-download"></i>
                     <span class="hidden md:inline font-medium">Export</span>
                 </button>
-                <button id="btn-import-trigger" title="Restore Backup" class="p-2 text-slate-600 hover:text-rose-600 hover:bg-slate-50 rounded-lg transition text-xs flex items-center gap-1 border border-slate-200">
-                    <i class="fa-solid fa-upload"></i>
-                    <span class="hidden md:inline font-medium">Import</span>
-                </button>
-                <input type="file" id="input-import-file" accept=".json" class="hidden">
 
-                <!-- New Post Button (Enabled for Teacher) -->
+                <!-- New Post Button -->
                 <button id="btn-create-post" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow hover:opacity-90 transition flex items-center gap-1.5">
                     <i class="fa-solid fa-plus-square text-sm"></i>
                     <span class="hidden sm:inline">New Post</span>
@@ -102,7 +102,7 @@
                 <!-- Login / Admin Badge Button -->
                 <button id="btn-auth-toggle" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 transition flex items-center gap-1.5">
                     <i id="auth-icon" class="fa-solid fa-lock text-slate-500"></i>
-                    <span id="auth-label">Admin Login</span>
+                    <span id="auth-label">Teacher Login</span>
                 </button>
             </div>
         </div>
@@ -124,7 +124,7 @@
                         <span>Teacher Journal</span>
                         <i class="fa-solid fa-circle-check text-sky-500 text-xs" title="Verified Teacher"></i>
                     </h3>
-                    <p id="teacher-status-desc" class="text-xs text-slate-500">Log in to share memories!</p>
+                    <p id="teacher-status-desc" class="text-xs text-slate-500">Log in to post memories online!</p>
                 </div>
             </div>
             <div id="teacher-badge" class="hidden bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-bold border border-emerald-200 flex items-center gap-1">
@@ -135,10 +135,9 @@
 
         <!-- Instagram Feed Posts Container -->
         <div id="posts-feed" class="space-y-6">
-            <!-- Dynamic Post Items Rendered Here -->
             <div class="bg-white rounded-2xl p-8 text-center border border-slate-200 text-slate-400 space-y-2">
                 <i class="fa-solid fa-spinner animate-spin text-2xl text-pink-500"></i>
-                <p class="text-xs">Loading classroom memories...</p>
+                <p class="text-xs">Syncing live classroom feed from cloud...</p>
             </div>
         </div>
     </main>
@@ -151,14 +150,14 @@
                     <i class="fa-solid fa-lock text-xl"></i>
                 </div>
                 <h3 class="text-lg font-bold text-slate-900">Teacher Authentication</h3>
-                <p class="text-xs text-slate-500">Please enter the password to unlock post creation</p>
+                <p class="text-xs text-slate-500">Please enter password to post memories for all students</p>
             </div>
 
             <form id="form-login" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
                     <input type="password" id="input-password" placeholder="Enter teacher password" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition">
-                    <p id="login-error" class="text-rose-500 text-xs mt-1 hidden font-medium">Incorrect password.</p>
+                    <p id="login-error" class="text-rose-500 text-xs mt-1 hidden font-medium">Incorrect password. </p>
                 </div>
                 <div class="flex items-center space-x-2 pt-2">
                     <button type="button" id="btn-close-login" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">Cancel</button>
@@ -174,7 +173,7 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-square-plus text-pink-600"></i>
-                    <span>Create New Entry</span>
+                    <span>Create Live Entry</span>
                 </h3>
                 <button id="btn-close-create" class="text-slate-400 hover:text-slate-600 text-lg p-1">
                     <i class="fa-solid fa-xmark"></i>
@@ -182,7 +181,6 @@
             </div>
 
             <form id="form-create-post" class="space-y-4">
-                <!-- Media Source Switcher -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="text-xs font-semibold text-slate-700">Image Attachment or Sketch</label>
@@ -260,7 +258,9 @@
                 <!-- Buttons -->
                 <div class="flex items-center space-x-2 pt-2">
                     <button type="button" id="btn-cancel-post" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">Cancel</button>
-                    <button type="submit" class="w-1/2 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-xs font-semibold shadow hover:opacity-90">Share Post</button>
+                    <button type="submit" id="btn-submit-post" class="w-1/2 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-xs font-semibold shadow hover:opacity-90 flex items-center justify-center gap-1.5">
+                        <span>Share Live Post</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -269,9 +269,19 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <script>
-        // Application State
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global App State & Config
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'instakilogram-app';
         let db = null;
+        let auth = null;
+        let authUser = null;
+        let postsCollectionRef = null;
+        let cachedPosts = [];
+
         let isTeacherLoggedIn = false;
         let currentPostImageData = null;
         let isSketching = false;
@@ -280,22 +290,71 @@
         let sketchSize = 6;
         let sketchCanvas, sketchCtx;
 
-        // Initialize IndexedDB
-        function initIndexedDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('InstaKilogramDB', 2);
-                request.onupgradeneeded = (e) => {
-                    const database = e.target.result;
-                    if (!database.objectStoreNames.contains('posts')) {
-                        const store = database.createObjectStore('posts', { keyPath: 'id' });
-                        store.createIndex('timestamp', 'timestamp', { unique: false });
-                    }
+        // Initialize Firebase
+        async function initFirebaseCloud() {
+            try {
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                    apiKey: "AIzaSyBP2b1ubFCEU17vYduyW0O9xW6ukOGlI4U",
+  authDomain: "insta-k-gram.firebaseapp.com",
+  projectId: "insta-k-gram",
+  storageBucket: "insta-k-gram.firebasestorage.app",
+  messagingSenderId: "827972991691",
+  appId: "1:827972991691:web:cfc051837b2df9fbeaf94e",
+  measurementId: "G-QXZ0SCP7G0"
                 };
-                request.onsuccess = (e) => {
-                    db = e.target.result;
-                    resolve(db);
-                };
-                request.onerror = (e) => reject(e);
+
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Authenticate
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                    authUser = cred.user;
+                } else {
+                    const cred = await signInAnonymously(auth);
+                    authUser = cred.user;
+                }
+
+                // Cloud Firestore Public Path
+                postsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+
+                // Update Header Badge
+                const cloudBadge = document.getElementById('cloud-status-badge');
+                if (cloudBadge) {
+                    cloudBadge.className = 'px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold text-[9px] flex items-center gap-1';
+                    cloudBadge.innerHTML = `<i class="fa-solid fa-cloud"></i> Cloud Live`;
+                }
+
+                // Attach Realtime Listener
+                setupRealtimePostsListener();
+
+            } catch (err) {
+                console.error("Firebase Initialization Error:", err);
+                const cloudBadge = document.getElementById('cloud-status-badge');
+                if (cloudBadge) {
+                    cloudBadge.className = 'px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-semibold text-[9px] flex items-center gap-1';
+                    cloudBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Offline Mode`;
+                }
+            }
+        }
+
+        function setupRealtimePostsListener() {
+            if (!postsCollectionRef) return;
+
+            onSnapshot(postsCollectionRef, (snapshot) => {
+                const posts = [];
+                snapshot.forEach(docSnap => {
+                    posts.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                
+                // Client-side sort by timestamp descending
+                posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                cachedPosts = posts;
+                renderPostsFeed(cachedPosts);
+            }, (error) => {
+                console.error("Firestore sync error:", error);
+                showToast("Realtime sync issue. Please refresh.", "error");
             });
         }
 
@@ -317,55 +376,30 @@
             }).format(new Date()) + ' (GMT+7)';
         }
 
-        // IndexedDB CRUD Operations
-        async function savePostToDB(post) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('posts', 'readwrite');
-                tx.objectStore('posts').put(post);
-                tx.oncomplete = () => resolve(post);
-                tx.onerror = () => reject(tx.error);
-            });
-        }
-
-        async function getAllPostsFromDB() {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('posts', 'readonly');
-                const req = tx.objectStore('posts').getAll();
-                req.onsuccess = () => resolve(req.result.sort((a, b) => b.timestamp - a.timestamp));
-                req.onerror = () => reject(req.error);
-            });
-        }
-
-        async function deletePostFromDB(id) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('posts', 'readwrite');
-                tx.objectStore('posts').delete(id);
-                tx.oncomplete = () => resolve();
-            });
-        }
-
         // Render Instagram-Style Posts Feed
-        async function renderPostsFeed() {
-            const posts = await getAllPostsFromDB();
+        function renderPostsFeed(posts = cachedPosts) {
             const container = document.getElementById('posts-feed');
+            if (!container) return;
 
             if (posts.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 space-y-3">
+                    <div class="bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 space-y-3 shadow-sm">
                         <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-2xl text-slate-300">
                             <i class="fa-solid fa-camera-retro"></i>
                         </div>
-                        <h4 class="text-sm font-bold text-slate-700">No Posts Yet</h4>
-                        <p class="text-xs text-slate-500 max-w-xs mx-auto">Teacher can log in to post the first memory!</p>
+                        <h4 class="text-sm font-bold text-slate-700">No Posts Shared Yet</h4>
+                        <p class="text-xs text-slate-500 max-w-xs mx-auto">Teacher can log in to post the first memory for the class!</p>
                     </div>
                 `;
                 return;
             }
 
+            const localLikedPosts = JSON.parse(localStorage.getItem('insta_likes') || '{}');
+
             container.innerHTML = posts.map(post => {
                 const comments = post.comments || [];
                 const likesCount = post.likes || 0;
-                const isLiked = post.isLiked || false;
+                const isLiked = !!localLikedPosts[post.id];
 
                 return `
                     <article class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden" data-id="${post.id}">
@@ -380,13 +414,13 @@
                                         <span class="text-xs font-bold text-slate-900">Teacher</span>
                                         <i class="fa-solid fa-circle-check text-sky-500 text-[10px]"></i>
                                     </div>
-                                    <span class="text-[10px] text-slate-400 font-mono">${post.gmt7Date}</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">${post.gmt7Date || ''}</span>
                                 </div>
                             </div>
                             
                             <!-- Delete Post Button (Teacher only) -->
                             ${isTeacherLoggedIn ? `
-                                <button onclick="handleDeletePost('${post.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition text-xs" title="Delete Post">
+                                <button onclick="window.handleDeletePost('${post.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition text-xs" title="Delete Post">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             ` : ''}
@@ -399,11 +433,11 @@
                             </div>
                         ` : ''}
 
-                        <!-- Action Bar (Likes & Quick Reaction) -->
+                        <!-- Action Bar (Likes & Mood) -->
                         <div class="p-3.5 space-y-3">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
-                                    <button onclick="toggleLikePost('${post.id}')" class="text-xl transition-transform active:scale-125 ${isLiked ? 'text-rose-500' : 'text-slate-700 hover:text-rose-500'}">
+                                    <button onclick="window.toggleLikePost('${post.id}')" class="text-xl transition-transform active:scale-125 ${isLiked ? 'text-rose-500' : 'text-slate-700 hover:text-rose-500'}">
                                         <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
                                     </button>
                                     <span class="text-xs font-bold text-slate-800">${likesCount} ${likesCount === 1 ? 'like' : 'likes'}</span>
@@ -420,11 +454,11 @@
 
                             <!-- Comments & Replies List -->
                             <div class="pt-2 border-t border-slate-100 space-y-2">
-                                <h5 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Replies (${comments.length})</h5>
+                                <h5 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Class Replies (${comments.length})</h5>
                                 
                                 <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
                                     ${comments.length === 0 ? `
-                                        <p class="text-xs text-slate-400 italic">No replies yet. Be the first to reply!</p>
+                                        <p class="text-xs text-slate-400 italic">No replies yet. Be the first student to reply!</p>
                                     ` : comments.map(c => `
                                         <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs flex justify-between items-start gap-2">
                                             <div class="space-y-0.5">
@@ -435,7 +469,7 @@
                                                 <p class="text-slate-700">${escapeHTML(c.text)}</p>
                                             </div>
                                             ${isTeacherLoggedIn ? `
-                                                <button onclick="deleteComment('${post.id}', '${c.id}')" class="text-slate-300 hover:text-rose-500 text-[10px]">
+                                                <button onclick="window.deleteComment('${post.id}', '${c.id}')" class="text-slate-300 hover:text-rose-500 text-[10px]">
                                                     <i class="fa-solid fa-xmark"></i>
                                                 </button>
                                             ` : ''}
@@ -446,19 +480,19 @@
                                 <!-- Quick Emoji Bar -->
                                 <div class="flex items-center space-x-1 pt-1 overflow-x-auto">
                                     <span class="text-[10px] text-slate-400 font-medium mr-1">Quick:</span>
-                                    <button onclick="addQuickEmoji('${post.id}', '❤️')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">❤️</button>
-                                    <button onclick="addQuickEmoji('${post.id}', '🔥')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">🔥</button>
-                                    <button onclick="addQuickEmoji('${post.id}', '👏')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">👏</button>
-                                    <button onclick="addQuickEmoji('${post.id}', '😂')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">😂</button>
-                                    <button onclick="addQuickEmoji('${post.id}', '🙌')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">🙌</button>
-                                    <button onclick="addQuickEmoji('${post.id}', '😮')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">😮</button>
-                                    <button onclick="addQuickEmoji('${post.id}', '💯')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">💯</button>
+                                    <button onclick="window.addQuickEmoji('${post.id}', '❤️')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">❤️</button>
+                                    <button onclick="window.addQuickEmoji('${post.id}', '🔥')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">🔥</button>
+                                    <button onclick="window.addQuickEmoji('${post.id}', '👏')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">👏</button>
+                                    <button onclick="window.addQuickEmoji('${post.id}', '😂')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">😂</button>
+                                    <button onclick="window.addQuickEmoji('${post.id}', '🙌')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">🙌</button>
+                                    <button onclick="window.addQuickEmoji('${post.id}', '😮')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">😮</button>
+                                    <button onclick="window.addQuickEmoji('${post.id}', '💯')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">💯</button>
                                 </div>
 
                                 <!-- Add Comment Form -->
-                                <form onsubmit="handlePostComment(event, '${post.id}')" class="flex items-center space-x-2 pt-1">
+                                <form onsubmit="window.handlePostComment(event, '${post.id}')" class="flex items-center space-x-2 pt-1">
                                     <input type="text" name="author" placeholder="Name" value="Student" class="w-20 px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white">
-                                    <input type="text" name="commentText" placeholder="Add a reply..." required class="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white">
+                                    <input type="text" name="commentText" placeholder="Add a live reply..." required class="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white">
                                     <button type="submit" class="text-xs font-bold text-pink-600 hover:text-pink-700 px-3 py-1.5 bg-pink-50 hover:bg-pink-100 rounded-xl transition">Reply</button>
                                 </form>
                             </div>
@@ -468,73 +502,96 @@
             }).join('');
         }
 
-        // Post Interaction Logic
-        async function toggleLikePost(postId) {
-            const posts = await getAllPostsFromDB();
-            const post = posts.find(p => p.id === postId);
-            if (!post) return;
+        // Expose Functions to Window for Inline Event Handlers
+        window.toggleLikePost = async function(postId) {
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post || !db) return;
 
-            post.isLiked = !post.isLiked;
-            post.likes = (post.likes || 0) + (post.isLiked ? 1 : -1);
-            if (post.likes < 0) post.likes = 0;
+            const localLikedPosts = JSON.parse(localStorage.getItem('insta_likes') || '{}');
+            const wasLiked = !!localLikedPosts[postId];
 
-            await savePostToDB(post);
-            renderPostsFeed();
-        }
+            const newLikes = Math.max(0, (post.likes || 0) + (wasLiked ? -1 : 1));
+            
+            if (wasLiked) {
+                delete localLikedPosts[postId];
+            } else {
+                localLikedPosts[postId] = true;
+            }
+            localStorage.setItem('insta_likes', JSON.stringify(localLikedPosts));
 
-        async function handlePostComment(e, postId) {
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+                await updateDoc(docRef, { likes: newLikes });
+            } catch (err) {
+                console.error("Like toggle error:", err);
+            }
+        };
+
+        window.handlePostComment = async function(e, postId) {
             e.preventDefault();
             const form = e.target;
             const author = form.author.value.trim() || 'Student';
             const text = form.commentText.value.trim();
 
             if (!text) return;
-
             await addCommentToPost(postId, author, text);
             form.commentText.value = '';
-        }
+        };
 
-        async function addQuickEmoji(postId, emoji) {
+        window.addQuickEmoji = async function(postId, emoji) {
             await addCommentToPost(postId, 'Student', emoji);
-        }
+        };
 
         async function addCommentToPost(postId, author, text) {
-            const posts = await getAllPostsFromDB();
-            const post = posts.find(p => p.id === postId);
-            if (!post) return;
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post || !db) return;
 
-            if (!post.comments) post.comments = [];
-            post.comments.push({
+            const newComments = [...(post.comments || [])];
+            newComments.push({
                 id: 'comment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                 author: author,
                 text: text,
                 time: new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date())
             });
 
-            await savePostToDB(post);
-            showToast('Reply posted!', 'success');
-            renderPostsFeed();
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+                await updateDoc(docRef, { comments: newComments });
+                showToast('Reply sent live to class!', 'success');
+            } catch (err) {
+                console.error("Comment submission error:", err);
+                showToast('Failed to post reply', 'error');
+            }
         }
 
-        async function deleteComment(postId, commentId) {
-            const posts = await getAllPostsFromDB();
-            const post = posts.find(p => p.id === postId);
-            if (!post || !post.comments) return;
+        window.deleteComment = async function(postId, commentId) {
+            if (!isTeacherLoggedIn || !db) return;
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post) return;
 
-            post.comments = post.comments.filter(c => c.id !== commentId);
-            await savePostToDB(post);
-            showToast('Reply removed');
-            renderPostsFeed();
-        }
+            const filtered = (post.comments || []).filter(c => c.id !== commentId);
 
-        async function handleDeletePost(postId) {
-            if (!isTeacherLoggedIn) return;
-            await deletePostFromDB(postId);
-            showToast('Post deleted', 'info');
-            renderPostsFeed();
-        }
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+                await updateDoc(docRef, { comments: filtered });
+                showToast('Reply removed');
+            } catch (err) {
+                console.error("Delete comment error:", err);
+            }
+        };
 
-        // Sketch Pad Canvas Setup
+        window.handleDeletePost = async function(postId) {
+            if (!isTeacherLoggedIn || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+                await deleteDoc(docRef);
+                showToast('Post deleted from cloud', 'info');
+            } catch (err) {
+                console.error("Delete post error:", err);
+                showToast('Failed to delete post', 'error');
+            }
+        };
+
         function setupSketchCanvas() {
             sketchCanvas = document.getElementById('post-sketch-canvas');
             sketchCtx = sketchCanvas.getContext('2d');
@@ -593,7 +650,6 @@
             currentPostImageData = null;
         }
 
-        // Authentication Handling
         function setupAuth() {
             const modal = document.getElementById('modal-login');
             const errorElem = document.getElementById('login-error');
@@ -640,16 +696,15 @@
                 label.textContent = 'Logout';
                 icon.className = 'fa-solid fa-arrow-right-from-bracket text-rose-500';
                 badge.classList.remove('hidden');
-                statusDesc.textContent = 'Welcome Teacher! You can now create posts and moderate replies.';
+                statusDesc.textContent = 'Welcome Teacher! You can now post entries and moderate replies.';
             } else {
-                label.textContent = 'Admin Login';
+                label.textContent = 'Teacher Login';
                 icon.className = 'fa-solid fa-lock text-slate-500';
                 badge.classList.add('hidden');
-                statusDesc.textContent = 'Log in to share memories!';
+                statusDesc.textContent = 'Log in with password "teacher123" to post memories online!';
             }
         }
 
-        // Create Post Handling
         function setupPostCreator() {
             const createModal = document.getElementById('modal-create-post');
             const fileInput = document.getElementById('post-image-file');
@@ -728,7 +783,7 @@
 
             document.getElementById('btn-sketch-clear').addEventListener('click', clearSketchCanvas);
 
-            // Form Submit - Create Post
+            // Form Submit - Create Cloud Post
             document.getElementById('form-create-post').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const title = document.getElementById('post-input-title').value.trim();
@@ -736,7 +791,6 @@
                 const mood = document.getElementById('post-select-mood').value;
                 const tags = document.getElementById('post-input-tags').value.trim();
 
-                // Get drawing if active
                 if (!panelDraw.classList.contains('hidden')) {
                     currentPostImageData = sketchCanvas.toDataURL('image/png');
                 }
@@ -746,31 +800,35 @@
                     return;
                 }
 
-                const post = {
-                    id: 'post_' + Date.now(),
+                const postId = 'post_' + Date.now();
+                const postData = {
+                    id: postId,
                     title: title,
                     caption: caption,
                     mood: mood,
                     tags: tags,
                     image: currentPostImageData,
                     likes: 0,
-                    isLiked: false,
                     comments: [],
                     gmt7Date: getGMT7DateString(),
                     timestamp: Date.now()
                 };
 
-                await savePostToDB(post);
-                showToast('Post shared to classroom feed!', 'success');
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+                    await setDoc(docRef, postData);
+                    showToast('Post published live to classroom feed!', 'success');
 
-                // Reset form
-                document.getElementById('form-create-post').reset();
-                currentPostImageData = null;
-                clearSketchCanvas();
-                document.getElementById('post-image-preview-box').classList.add('hidden');
-                createModal.classList.add('hidden');
-
-                renderPostsFeed();
+                    // Reset form
+                    document.getElementById('form-create-post').reset();
+                    currentPostImageData = null;
+                    clearSketchCanvas();
+                    document.getElementById('post-image-preview-box').classList.add('hidden');
+                    createModal.classList.add('hidden');
+                } catch (err) {
+                    console.error("Publish post error:", err);
+                    showToast('Error publishing post to cloud', 'error');
+                }
             });
         }
 
@@ -789,36 +847,16 @@
             reader.readAsDataURL(file);
         }
 
-        // Export & Import Backup
-        async function exportBackup() {
-            const posts = await getAllPostsFromDB();
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(posts, null, 2));
+        // Export Backup
+        function exportBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cachedPosts, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `InstaKilogram_Backup_${Date.now()}.json`);
+            downloadAnchor.setAttribute("download", `InstaKilogram_Cloud_Backup_${Date.now()}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-            showToast('Backup downloaded!', 'success');
-        }
-
-        function importBackup(file) {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const posts = JSON.parse(e.target.result);
-                    if (Array.isArray(posts)) {
-                        for (const p of posts) await savePostToDB(p);
-                        showToast(`Restored ${posts.length} posts!`, 'success');
-                        renderPostsFeed();
-                    } else {
-                        showToast('Invalid backup file structure', 'error');
-                    }
-                } catch (err) {
-                    showToast('Failed to parse backup JSON', 'error');
-                }
-            };
-            reader.readAsText(file);
+            showToast('Cloud backup exported!', 'success');
         }
 
         // Helpers
@@ -828,6 +866,7 @@
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
+            if (!container) return;
             const toast = document.createElement('div');
             const bgClass = type === 'error' ? 'bg-rose-600' : (type === 'success' ? 'bg-emerald-600' : 'bg-slate-800');
             
@@ -846,7 +885,6 @@
 
         // Initialization
         window.addEventListener('DOMContentLoaded', async () => {
-            await initIndexedDB();
             setupSketchCanvas();
             setupAuth();
             setupPostCreator();
@@ -854,15 +892,11 @@
             updateGMT7Clock();
             setInterval(updateGMT7Clock, 1000);
 
-            // Backup buttons
+            // Export button
             document.getElementById('btn-export').addEventListener('click', exportBackup);
-            document.getElementById('btn-import-trigger').addEventListener('click', () => document.getElementById('input-import-file').click());
-            document.getElementById('input-import-file').addEventListener('change', (e) => {
-                if (e.target.files[0]) importBackup(e.target.files[0]);
-            });
 
-            // Initial feed load
-            renderPostsFeed();
+            // Initialize Cloud Realtime Database
+            await initFirebaseCloud();
         });
     </script>
 </body>
