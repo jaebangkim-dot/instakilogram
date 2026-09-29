@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstaKilogram - Local Journal & Community Feed</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Lora', 'serif'],
+                    },
+                    colors: {
+                        insta: {
+                            pink: '#e1306c',
+                            purple: '#833ab4',
+                            orange: '#f77737',
+                            yellow: '#fcaf45'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.03);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.25);
+        }
+        .instagram-gradient {
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%,#d6249f 60%,#285AEB 90%);
+        }
+        .instagram-gradient-border {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col font-sans antialiased selection:bg-rose-100 selection:text-rose-900 bg-slate-100">
+
+    <!-- Top Instagram-style Header Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <!-- App Branding -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl instagram-gradient flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-camera text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent font-serif tracking-tight">InstaKilogram</h1>
+                    <p class="text-[11px] text-slate-500 font-medium">GMT+7 Classroom Journal</p>
+                </div>
+            </div>
+
+            <!-- GMT+7 Clock Indicator -->
+            <div class="hidden sm:flex items-center space-x-2 bg-slate-50 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium">
+                <i class="fa-regular fa-clock text-rose-500 animate-pulse"></i>
+                <span>GMT+7:</span>
+                <span id="gmt7-clock" class="font-mono font-semibold">--:--:--</span>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center space-x-2">
+                <!-- Backup & Restore -->
+                <button id="btn-export" title="Export Backup" class="p-2 text-slate-600 hover:text-rose-600 hover:bg-slate-50 rounded-lg transition text-xs flex items-center gap-1 border border-slate-200">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="hidden md:inline font-medium">Export</span>
+                </button>
+                <button id="btn-import-trigger" title="Restore Backup" class="p-2 text-slate-600 hover:text-rose-600 hover:bg-slate-50 rounded-lg transition text-xs flex items-center gap-1 border border-slate-200">
+                    <i class="fa-solid fa-upload"></i>
+                    <span class="hidden md:inline font-medium">Import</span>
+                </button>
+                <input type="file" id="input-import-file" accept=".json" class="hidden">
+
+                <!-- New Post Button (Enabled for Teacher) -->
+                <button id="btn-create-post" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow hover:opacity-90 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus-square text-sm"></i>
+                    <span class="hidden sm:inline">New Post</span>
+                </button>
+
+                <!-- Login / Admin Badge Button -->
+                <button id="btn-auth-toggle" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 transition flex items-center gap-1.5">
+                    <i id="auth-icon" class="fa-solid fa-lock text-slate-500"></i>
+                    <span id="auth-label">Admin Login</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Feed Container -->
+    <main class="flex-1 max-w-xl w-full mx-auto p-3 sm:p-4 space-y-6">
+        
+        <!-- Teacher Welcome / Status Card -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-0.5 rounded-full instagram-gradient-border">
+                    <div class="w-12 h-12 rounded-full bg-white p-0.5">
+                        <img id="teacher-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher" alt="Avatar" class="w-full h-full rounded-full bg-slate-100">
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <span>Teacher Journal</span>
+                        <i class="fa-solid fa-circle-check text-sky-500 text-xs" title="Verified Teacher"></i>
+                    </h3>
+                    <p id="teacher-status-desc" class="text-xs text-slate-500">Log in with password "teacher123" to share memories!</p>
+                </div>
+            </div>
+            <div id="teacher-badge" class="hidden bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-bold border border-emerald-200 flex items-center gap-1">
+                <i class="fa-solid fa-user-check"></i>
+                <span>Teacher Mode</span>
+            </div>
+        </div>
+
+        <!-- Instagram Feed Posts Container -->
+        <div id="posts-feed" class="space-y-6">
+            <!-- Dynamic Post Items Rendered Here -->
+            <div class="bg-white rounded-2xl p-8 text-center border border-slate-200 text-slate-400 space-y-2">
+                <i class="fa-solid fa-spinner animate-spin text-2xl text-pink-500"></i>
+                <p class="text-xs">Loading classroom memories...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- LOGIN MODAL (Password: teacher123) -->
+    <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-5 border border-slate-100 transform transition-all">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl instagram-gradient mx-auto flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-lock text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900">Teacher Authentication</h3>
+                <p class="text-xs text-slate-500">Please enter the password to unlock post creation</p>
+            </div>
+
+            <form id="form-login" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                    <input type="password" id="input-password" placeholder="Enter teacher password" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition">
+                    <p id="login-error" class="text-rose-500 text-xs mt-1 hidden font-medium">Incorrect password. Hint: teacher123</p>
+                </div>
+                <div class="flex items-center space-x-2 pt-2">
+                    <button type="button" id="btn-close-login" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">Cancel</button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-xs font-semibold shadow transition">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CREATE POST MODAL -->
+    <div id="modal-create-post" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-5 border border-slate-100 my-8">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-square-plus text-pink-600"></i>
+                    <span>Create New Entry</span>
+                </h3>
+                <button id="btn-close-create" class="text-slate-400 hover:text-slate-600 text-lg p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="form-create-post" class="space-y-4">
+                <!-- Media Source Switcher -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-slate-700">Image Attachment or Sketch</label>
+                        <div class="flex bg-slate-100 p-0.5 rounded-lg text-xs font-medium">
+                            <button type="button" id="post-tab-upload" class="px-3 py-1 rounded-md bg-white text-slate-800 shadow-sm">Upload Photo</button>
+                            <button type="button" id="post-tab-draw" class="px-3 py-1 rounded-md text-slate-600">Draw Sketch</button>
+                        </div>
+                    </div>
+
+                    <!-- Upload Image Panel -->
+                    <div id="post-panel-upload" class="space-y-2">
+                        <div id="post-drop-zone" class="border-2 border-dashed border-slate-300 hover:border-pink-500 rounded-xl p-6 text-center bg-slate-50 hover:bg-rose-50/20 cursor-pointer transition flex flex-col items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-pink-500"></i>
+                            <p class="text-xs font-semibold text-slate-700">Click to upload image or drop file</p>
+                            <p class="text-[10px] text-slate-400">PNG, JPG, WEBP formats supported</p>
+                            <input type="file" id="post-image-file" accept="image/*" class="hidden">
+                        </div>
+                    </div>
+
+                    <!-- Sketch Drawing Canvas Panel -->
+                    <div id="post-panel-draw" class="hidden space-y-2">
+                        <div class="flex flex-wrap items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs gap-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="color" id="sketch-color" value="#0284c7" class="w-6 h-6 rounded cursor-pointer border-0">
+                                <button type="button" class="sketch-size-btn px-2 py-0.5 bg-slate-200 rounded text-[10px] font-bold" data-size="2">Thin</button>
+                                <button type="button" class="sketch-size-btn px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-[10px] font-bold" data-size="6">Medium</button>
+                                <button type="button" class="sketch-size-btn px-2 py-0.5 bg-slate-200 rounded text-[10px] font-bold" data-size="14">Thick</button>
+                                <button type="button" id="btn-sketch-eraser" class="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-semibold">Eraser</button>
+                            </div>
+                            <button type="button" id="btn-sketch-clear" class="px-2 py-0.5 bg-rose-100 text-rose-600 rounded text-[10px] font-semibold">Clear</button>
+                        </div>
+                        <div class="relative bg-white rounded-xl border border-slate-200 overflow-hidden flex justify-center items-center">
+                            <canvas id="post-sketch-canvas" width="500" height="260" class="w-full h-56 bg-white cursor-crosshair"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div id="post-image-preview-box" class="hidden relative rounded-xl overflow-hidden border border-slate-200 max-h-56 bg-slate-900">
+                        <img id="post-image-preview" src="" alt="Preview" class="w-full h-56 object-contain">
+                        <button type="button" id="btn-remove-post-image" class="absolute top-2 right-2 bg-slate-900/70 hover:bg-slate-900 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Title & Caption Fields -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Post Title / Topic</label>
+                    <input type="text" id="post-input-title" placeholder="e.g. Science Class AI Presentation" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Caption & Description</label>
+                    <textarea id="post-input-caption" rows="4" placeholder="Write your post details here..." class="w-full p-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 resize-y"></textarea>
+                </div>
+
+                <!-- Mood & Tags -->
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Mood Emoji</label>
+                        <select id="post-select-mood" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                            <option value="😊">😊 Happy / Excited</option>
+                            <option value="🌿">🌿 Calm / Focused</option>
+                            <option value="☕">☕ Cozy / Relaxed</option>
+                            <option value="💡">💡 Inspired / Creative</option>
+                            <option value="📚">📚 Study / Classroom</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Hashtags</label>
+                        <input type="text" id="post-input-tags" placeholder="#school #science" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex items-center space-x-2 pt-2">
+                    <button type="button" id="btn-cancel-post" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-xs font-semibold shadow hover:opacity-90">Share Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // Application State
+        let db = null;
+        let isTeacherLoggedIn = false;
+        let currentPostImageData = null;
+        let isSketching = false;
+        let isSketchEraser = false;
+        let sketchColor = '#0284c7';
+        let sketchSize = 6;
+        let sketchCanvas, sketchCtx;
+
+        // Initialize IndexedDB
+        function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('InstaKilogramDB', 2);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains('posts')) {
+                        const store = database.createObjectStore('posts', { keyPath: 'id' });
+                        store.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        // GMT+7 Real-time Clock
+        function updateGMT7Clock() {
+            const timeStr = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Asia/Bangkok',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            }).format(new Date());
+            const clockElem = document.getElementById('gmt7-clock');
+            if (clockElem) clockElem.textContent = timeStr;
+        }
+
+        function getGMT7DateString() {
+            return new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Asia/Bangkok',
+                year: 'numeric', month: 'short', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hour12: false
+            }).format(new Date()) + ' (GMT+7)';
+        }
+
+        // IndexedDB CRUD Operations
+        async function savePostToDB(post) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('posts', 'readwrite');
+                tx.objectStore('posts').put(post);
+                tx.oncomplete = () => resolve(post);
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function getAllPostsFromDB() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('posts', 'readonly');
+                const req = tx.objectStore('posts').getAll();
+                req.onsuccess = () => resolve(req.result.sort((a, b) => b.timestamp - a.timestamp));
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function deletePostFromDB(id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('posts', 'readwrite');
+                tx.objectStore('posts').delete(id);
+                tx.oncomplete = () => resolve();
+            });
+        }
+
+        // Render Instagram-Style Posts Feed
+        async function renderPostsFeed() {
+            const posts = await getAllPostsFromDB();
+            const container = document.getElementById('posts-feed');
+
+            if (posts.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 space-y-3">
+                        <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-2xl text-slate-300">
+                            <i class="fa-solid fa-camera-retro"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-700">No Posts Yet</h4>
+                        <p class="text-xs text-slate-500 max-w-xs mx-auto">Teacher can log in with "teacher123" to post the first memory!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = posts.map(post => {
+                const comments = post.comments || [];
+                const likesCount = post.likes || 0;
+                const isLiked = post.isLiked || false;
+
+                return `
+                    <article class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden" data-id="${post.id}">
+                        <!-- Post Header -->
+                        <div class="p-3.5 flex items-center justify-between border-b border-slate-100">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="p-0.5 rounded-full instagram-gradient-border">
+                                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher" alt="Avatar" class="w-8 h-8 rounded-full bg-slate-100">
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="text-xs font-bold text-slate-900">Teacher</span>
+                                        <i class="fa-solid fa-circle-check text-sky-500 text-[10px]"></i>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 font-mono">${post.gmt7Date}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Delete Post Button (Teacher only) -->
+                            ${isTeacherLoggedIn ? `
+                                <button onclick="handleDeletePost('${post.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition text-xs" title="Delete Post">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        <!-- Post Image or Sketch -->
+                        ${post.image ? `
+                            <div class="bg-slate-900 flex items-center justify-center max-h-[450px] overflow-hidden">
+                                <img src="${post.image}" alt="Post image" class="w-full object-contain max-h-[450px]">
+                            </div>
+                        ` : ''}
+
+                        <!-- Action Bar (Likes & Quick Reaction) -->
+                        <div class="p-3.5 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <button onclick="toggleLikePost('${post.id}')" class="text-xl transition-transform active:scale-125 ${isLiked ? 'text-rose-500' : 'text-slate-700 hover:text-rose-500'}">
+                                        <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                    </button>
+                                    <span class="text-xs font-bold text-slate-800">${likesCount} ${likesCount === 1 ? 'like' : 'likes'}</span>
+                                </div>
+                                <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 rounded-full text-slate-600">${post.mood || '😊'}</span>
+                            </div>
+
+                            <!-- Title & Caption -->
+                            <div class="space-y-1 text-xs text-slate-800">
+                                ${post.title ? `<h4 class="font-bold text-slate-900 text-sm">${escapeHTML(post.title)}</h4>` : ''}
+                                <p class="leading-relaxed"><span class="font-bold mr-1">Teacher:</span>${escapeHTML(post.caption || '')}</p>
+                                ${post.tags ? `<p class="text-pink-600 font-medium">${escapeHTML(post.tags)}</p>` : ''}
+                            </div>
+
+                            <!-- Comments & Replies List -->
+                            <div class="pt-2 border-t border-slate-100 space-y-2">
+                                <h5 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Replies (${comments.length})</h5>
+                                
+                                <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                    ${comments.length === 0 ? `
+                                        <p class="text-xs text-slate-400 italic">No replies yet. Be the first to reply!</p>
+                                    ` : comments.map(c => `
+                                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs flex justify-between items-start gap-2">
+                                            <div class="space-y-0.5">
+                                                <div class="flex items-center space-x-1.5">
+                                                    <span class="font-bold text-slate-900">${escapeHTML(c.author)}</span>
+                                                    <span class="text-[9px] text-slate-400 font-mono">${c.time || ''}</span>
+                                                </div>
+                                                <p class="text-slate-700">${escapeHTML(c.text)}</p>
+                                            </div>
+                                            ${isTeacherLoggedIn ? `
+                                                <button onclick="deleteComment('${post.id}', '${c.id}')" class="text-slate-300 hover:text-rose-500 text-[10px]">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+
+                                <!-- Quick Emoji Bar -->
+                                <div class="flex items-center space-x-1 pt-1 overflow-x-auto">
+                                    <span class="text-[10px] text-slate-400 font-medium mr-1">Quick:</span>
+                                    <button onclick="addQuickEmoji('${post.id}', '❤️')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">❤️</button>
+                                    <button onclick="addQuickEmoji('${post.id}', '🔥')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">🔥</button>
+                                    <button onclick="addQuickEmoji('${post.id}', '👏')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">👏</button>
+                                    <button onclick="addQuickEmoji('${post.id}', '😂')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">😂</button>
+                                    <button onclick="addQuickEmoji('${post.id}', '🙌')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">🙌</button>
+                                    <button onclick="addQuickEmoji('${post.id}', '😮')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">😮</button>
+                                    <button onclick="addQuickEmoji('${post.id}', '💯')" class="px-2 py-0.5 bg-slate-100 hover:bg-pink-100 text-xs rounded-full transition">💯</button>
+                                </div>
+
+                                <!-- Add Comment Form -->
+                                <form onsubmit="handlePostComment(event, '${post.id}')" class="flex items-center space-x-2 pt-1">
+                                    <input type="text" name="author" placeholder="Name" value="Student" class="w-20 px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white">
+                                    <input type="text" name="commentText" placeholder="Add a reply..." required class="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white">
+                                    <button type="submit" class="text-xs font-bold text-pink-600 hover:text-pink-700 px-3 py-1.5 bg-pink-50 hover:bg-pink-100 rounded-xl transition">Reply</button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        // Post Interaction Logic
+        async function toggleLikePost(postId) {
+            const posts = await getAllPostsFromDB();
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            post.isLiked = !post.isLiked;
+            post.likes = (post.likes || 0) + (post.isLiked ? 1 : -1);
+            if (post.likes < 0) post.likes = 0;
+
+            await savePostToDB(post);
+            renderPostsFeed();
+        }
+
+        async function handlePostComment(e, postId) {
+            e.preventDefault();
+            const form = e.target;
+            const author = form.author.value.trim() || 'Student';
+            const text = form.commentText.value.trim();
+
+            if (!text) return;
+
+            await addCommentToPost(postId, author, text);
+            form.commentText.value = '';
+        }
+
+        async function addQuickEmoji(postId, emoji) {
+            await addCommentToPost(postId, 'Student', emoji);
+        }
+
+        async function addCommentToPost(postId, author, text) {
+            const posts = await getAllPostsFromDB();
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            if (!post.comments) post.comments = [];
+            post.comments.push({
+                id: 'comment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                author: author,
+                text: text,
+                time: new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date())
+            });
+
+            await savePostToDB(post);
+            showToast('Reply posted!', 'success');
+            renderPostsFeed();
+        }
+
+        async function deleteComment(postId, commentId) {
+            const posts = await getAllPostsFromDB();
+            const post = posts.find(p => p.id === postId);
+            if (!post || !post.comments) return;
+
+            post.comments = post.comments.filter(c => c.id !== commentId);
+            await savePostToDB(post);
+            showToast('Reply removed');
+            renderPostsFeed();
+        }
+
+        async function handleDeletePost(postId) {
+            if (!isTeacherLoggedIn) return;
+            await deletePostFromDB(postId);
+            showToast('Post deleted', 'info');
+            renderPostsFeed();
+        }
+
+        // Sketch Pad Canvas Setup
+        function setupSketchCanvas() {
+            sketchCanvas = document.getElementById('post-sketch-canvas');
+            sketchCtx = sketchCanvas.getContext('2d');
+            
+            sketchCtx.fillStyle = '#ffffff';
+            sketchCtx.fillRect(0, 0, sketchCanvas.width, sketchCanvas.height);
+            sketchCtx.lineCap = 'round';
+            sketchCtx.lineJoin = 'round';
+
+            function startDraw(e) {
+                isSketching = true;
+                const pos = getSketchPos(e);
+                sketchCtx.beginPath();
+                sketchCtx.moveTo(pos.x, pos.y);
+            }
+
+            function draw(e) {
+                if (!isSketching) return;
+                const pos = getSketchPos(e);
+                sketchCtx.strokeStyle = isSketchEraser ? '#ffffff' : sketchColor;
+                sketchCtx.lineWidth = isSketchEraser ? sketchSize * 3 : sketchSize;
+                sketchCtx.lineTo(pos.x, pos.y);
+                sketchCtx.stroke();
+            }
+
+            function stopDraw() {
+                if (isSketching) {
+                    sketchCtx.closePath();
+                    isSketching = false;
+                    currentPostImageData = sketchCanvas.toDataURL('image/png');
+                }
+            }
+
+            sketchCanvas.addEventListener('mousedown', startDraw);
+            sketchCanvas.addEventListener('mousemove', draw);
+            sketchCanvas.addEventListener('mouseup', stopDraw);
+            sketchCanvas.addEventListener('mouseleave', stopDraw);
+
+            sketchCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
+            sketchCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+            sketchCanvas.addEventListener('touchend', (e) => { e.preventDefault(); stopDraw(); });
+        }
+
+        function getSketchPos(evt) {
+            const rect = sketchCanvas.getBoundingClientRect();
+            return {
+                x: (evt.clientX - rect.left) * (sketchCanvas.width / rect.width),
+                y: (evt.clientY - rect.top) * (sketchCanvas.height / rect.height)
+            };
+        }
+
+        function clearSketchCanvas() {
+            if (!sketchCtx) return;
+            sketchCtx.fillStyle = '#ffffff';
+            sketchCtx.fillRect(0, 0, sketchCanvas.width, sketchCanvas.height);
+            currentPostImageData = null;
+        }
+
+        // Authentication Handling
+        function setupAuth() {
+            const modal = document.getElementById('modal-login');
+            const errorElem = document.getElementById('login-error');
+
+            document.getElementById('btn-auth-toggle').addEventListener('click', () => {
+                if (isTeacherLoggedIn) {
+                    isTeacherLoggedIn = false;
+                    updateAuthUI();
+                    showToast('Logged out of Teacher mode');
+                    renderPostsFeed();
+                } else {
+                    errorElem.classList.add('hidden');
+                    document.getElementById('input-password').value = '';
+                    modal.classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('btn-close-login').addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
+
+            document.getElementById('form-login').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const pwd = document.getElementById('input-password').value;
+                if (pwd === 'teacher123') {
+                    isTeacherLoggedIn = true;
+                    updateAuthUI();
+                    modal.classList.add('hidden');
+                    showToast('Teacher Mode unlocked!', 'success');
+                    renderPostsFeed();
+                } else {
+                    errorElem.classList.remove('hidden');
+                }
+            });
+        }
+
+        function updateAuthUI() {
+            const label = document.getElementById('auth-label');
+            const icon = document.getElementById('auth-icon');
+            const badge = document.getElementById('teacher-badge');
+            const statusDesc = document.getElementById('teacher-status-desc');
+
+            if (isTeacherLoggedIn) {
+                label.textContent = 'Logout';
+                icon.className = 'fa-solid fa-arrow-right-from-bracket text-rose-500';
+                badge.classList.remove('hidden');
+                statusDesc.textContent = 'Welcome Teacher! You can now create posts and moderate replies.';
+            } else {
+                label.textContent = 'Admin Login';
+                icon.className = 'fa-solid fa-lock text-slate-500';
+                badge.classList.add('hidden');
+                statusDesc.textContent = 'Log in with password "teacher123" to share memories!';
+            }
+        }
+
+        // Create Post Handling
+        function setupPostCreator() {
+            const createModal = document.getElementById('modal-create-post');
+            const fileInput = document.getElementById('post-image-file');
+            const dropZone = document.getElementById('post-drop-zone');
+
+            document.getElementById('btn-create-post').addEventListener('click', () => {
+                if (!isTeacherLoggedIn) {
+                    showToast('Please log in with teacher password first!', 'error');
+                    document.getElementById('modal-login').classList.remove('hidden');
+                    return;
+                }
+                createModal.classList.remove('hidden');
+            });
+
+            document.getElementById('btn-close-create').addEventListener('click', () => createModal.classList.add('hidden'));
+            document.getElementById('btn-cancel-post').addEventListener('click', () => createModal.classList.add('hidden'));
+
+            // Media Tab Switching
+            const tabUpload = document.getElementById('post-tab-upload');
+            const tabDraw = document.getElementById('post-tab-draw');
+            const panelUpload = document.getElementById('post-panel-upload');
+            const panelDraw = document.getElementById('post-panel-draw');
+
+            tabUpload.addEventListener('click', () => {
+                tabUpload.className = 'px-3 py-1 rounded-md bg-white text-slate-800 shadow-sm font-semibold';
+                tabDraw.className = 'px-3 py-1 rounded-md text-slate-600 font-medium';
+                panelUpload.classList.remove('hidden');
+                panelDraw.classList.add('hidden');
+            });
+
+            tabDraw.addEventListener('click', () => {
+                tabDraw.className = 'px-3 py-1 rounded-md bg-white text-slate-800 shadow-sm font-semibold';
+                tabUpload.className = 'px-3 py-1 rounded-md text-slate-600 font-medium';
+                panelDraw.classList.remove('hidden');
+                panelUpload.classList.add('hidden');
+            });
+
+            // Image File Upload & Dropzone
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) processUploadImage(e.target.files[0]);
+            });
+
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-pink-500', 'bg-rose-50/50'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-pink-500', 'bg-rose-50/50'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-pink-500', 'bg-rose-50/50');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) processUploadImage(e.dataTransfer.files[0]);
+            });
+
+            document.getElementById('btn-remove-post-image').addEventListener('click', () => {
+                currentPostImageData = null;
+                document.getElementById('post-image-preview-box').classList.add('hidden');
+            });
+
+            // Sketch controls
+            document.getElementById('sketch-color').addEventListener('change', (e) => {
+                sketchColor = e.target.value;
+                isSketchEraser = false;
+            });
+
+            document.querySelectorAll('.sketch-size-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.sketch-size-btn').forEach(b => b.className = 'sketch-size-btn px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-bold');
+                    btn.className = 'sketch-size-btn px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-[10px] font-bold';
+                    sketchSize = parseInt(btn.dataset.size);
+                });
+            });
+
+            document.getElementById('btn-sketch-eraser').addEventListener('click', () => {
+                isSketchEraser = !isSketchEraser;
+                const btn = document.getElementById('btn-sketch-eraser');
+                btn.className = isSketchEraser ? 'px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-[10px] font-bold' : 'px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-semibold';
+            });
+
+            document.getElementById('btn-sketch-clear').addEventListener('click', clearSketchCanvas);
+
+            // Form Submit - Create Post
+            document.getElementById('form-create-post').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const title = document.getElementById('post-input-title').value.trim();
+                const caption = document.getElementById('post-input-caption').value.trim();
+                const mood = document.getElementById('post-select-mood').value;
+                const tags = document.getElementById('post-input-tags').value.trim();
+
+                // Get drawing if active
+                if (!panelDraw.classList.contains('hidden')) {
+                    currentPostImageData = sketchCanvas.toDataURL('image/png');
+                }
+
+                if (!caption && !currentPostImageData) {
+                    showToast('Please add a caption or an image!', 'error');
+                    return;
+                }
+
+                const post = {
+                    id: 'post_' + Date.now(),
+                    title: title,
+                    caption: caption,
+                    mood: mood,
+                    tags: tags,
+                    image: currentPostImageData,
+                    likes: 0,
+                    isLiked: false,
+                    comments: [],
+                    gmt7Date: getGMT7DateString(),
+                    timestamp: Date.now()
+                };
+
+                await savePostToDB(post);
+                showToast('Post shared to classroom feed!', 'success');
+
+                // Reset form
+                document.getElementById('form-create-post').reset();
+                currentPostImageData = null;
+                clearSketchCanvas();
+                document.getElementById('post-image-preview-box').classList.add('hidden');
+                createModal.classList.add('hidden');
+
+                renderPostsFeed();
+            });
+        }
+
+        function processUploadImage(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('Please select a valid image file', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                currentPostImageData = evt.target.result;
+                const previewImg = document.getElementById('post-image-preview');
+                previewImg.src = currentPostImageData;
+                document.getElementById('post-image-preview-box').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Export & Import Backup
+        async function exportBackup() {
+            const posts = await getAllPostsFromDB();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(posts, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `InstaKilogram_Backup_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('Backup downloaded!', 'success');
+        }
+
+        function importBackup(file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const posts = JSON.parse(e.target.result);
+                    if (Array.isArray(posts)) {
+                        for (const p of posts) await savePostToDB(p);
+                        showToast(`Restored ${posts.length} posts!`, 'success');
+                        renderPostsFeed();
+                    } else {
+                        showToast('Invalid backup file structure', 'error');
+                    }
+                } catch (err) {
+                    showToast('Failed to parse backup JSON', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Helpers
+        function escapeHTML(str) {
+            return (str || '').replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'error' ? 'bg-rose-600' : (type === 'success' ? 'bg-emerald-600' : 'bg-slate-800');
+            
+            toast.className = `${bgClass} text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xl pointer-events-auto flex items-center gap-2 transition duration-300 opacity-100`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-exclamation' : 'fa-info-circle')}"></i>
+                <span>${escapeHTML(message)}</span>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // Initialization
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initIndexedDB();
+            setupSketchCanvas();
+            setupAuth();
+            setupPostCreator();
+
+            updateGMT7Clock();
+            setInterval(updateGMT7Clock, 1000);
+
+            // Backup buttons
+            document.getElementById('btn-export').addEventListener('click', exportBackup);
+            document.getElementById('btn-import-trigger').addEventListener('click', () => document.getElementById('input-import-file').click());
+            document.getElementById('input-import-file').addEventListener('change', (e) => {
+                if (e.target.files[0]) importBackup(e.target.files[0]);
+            });
+
+            // Initial feed load
+            renderPostsFeed();
+        });
+    </script>
+</body>
+</html>
