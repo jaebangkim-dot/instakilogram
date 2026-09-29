@@ -124,7 +124,7 @@
                         <span>Teacher Journal</span>
                         <i class="fa-solid fa-circle-check text-sky-500 text-xs" title="Verified Teacher"></i>
                     </h3>
-                    <p id="teacher-status-desc" class="text-xs text-slate-500">Log in with password "teacher123" to share memories!</p>
+                    <p id="teacher-status-desc" class="text-xs text-slate-500">Log in to share memories!</p>
                 </div>
             </div>
             <div id="teacher-badge" class="hidden bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-bold border border-emerald-200 flex items-center gap-1">
@@ -143,7 +143,7 @@
         </div>
     </main>
 
-    <!-- LOGIN MODAL (Password: teacher123) -->
+    <!-- LOGIN MODAL (Password) -->
     <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-5 border border-slate-100 transform transition-all">
             <div class="text-center space-y-2">
@@ -356,7 +356,7 @@
                             <i class="fa-solid fa-camera-retro"></i>
                         </div>
                         <h4 class="text-sm font-bold text-slate-700">No Posts Yet</h4>
-                        <p class="text-xs text-slate-500 max-w-xs mx-auto">Teacher can log in with "teacher123" to post the first memory!</p>
+                        <p class="text-xs text-slate-500 max-w-xs mx-auto">Teacher can log in to post the first memory!</p>
                     </div>
                 `;
                 return;
@@ -645,7 +645,7 @@
                 label.textContent = 'Admin Login';
                 icon.className = 'fa-solid fa-lock text-slate-500';
                 badge.classList.add('hidden');
-                statusDesc.textContent = 'Log in with password "teacher123" to share memories!';
+                statusDesc.textContent = 'Log in to share memories!';
             }
         }
 
