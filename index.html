@@ -186,13 +186,13 @@
         </div>
     </div>
 
-    <!-- CREATE POST MODAL -->
+    <!-- CREATE / EDIT POST MODAL -->
     <div id="modal-create-post" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-5 border border-slate-100 my-8">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-square-plus text-pink-600"></i>
-                    <span>Create Live Entry</span>
+                    <i id="post-modal-icon" class="fa-solid fa-square-plus text-pink-600"></i>
+                    <span id="post-modal-title">Create Live Entry</span>
                 </h3>
                 <button id="btn-close-create" class="text-slate-400 hover:text-slate-600 text-lg p-1">
                     <i class="fa-solid fa-xmark"></i>
@@ -278,7 +278,7 @@
                 <div class="flex items-center space-x-2 pt-2">
                     <button type="button" id="btn-cancel-post" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">Cancel</button>
                     <button type="submit" id="btn-submit-post" class="w-1/2 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-xs font-semibold shadow hover:opacity-90 flex items-center justify-center gap-1.5">
-                        <span>Share Live Post</span>
+                        <span id="btn-submit-post-label">Share Live Post</span>
                     </button>
                 </div>
             </form>
@@ -302,6 +302,7 @@
         let cachedPosts = [];
 
         let isTeacherLoggedIn = false;
+        let editingPostId = null; // Track if currently editing a post
         let currentPostImageData = null;
         let isSketching = false;
         let isSketchEraser = false;
@@ -442,6 +443,13 @@
                                 ${post.image ? `
                                     <button onclick="window.toggleImageFit('${post.id}')" title="Toggle Fit/Fill" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg text-xs bg-slate-50 border border-slate-200">
                                         <i class="fa-solid fa-expand"></i>
+                                    </button>
+                                ` : ''}
+
+                                <!-- Edit Post Button (Teacher only) -->
+                                ${isTeacherLoggedIn ? `
+                                    <button onclick="window.handleEditPost('${post.id}')" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg transition text-xs" title="Edit Post">
+                                        <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
                                 ` : ''}
 
@@ -621,6 +629,37 @@
             }
         };
 
+        // Open Modal to Edit an Existing Post
+        window.handleEditPost = function(postId) {
+            if (!isTeacherLoggedIn) return;
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            editingPostId = postId;
+
+            // Populate Modal Form Fields
+            document.getElementById('post-modal-title').textContent = 'Edit Entry';
+            document.getElementById('post-modal-icon').className = 'fa-solid fa-pen-to-square text-pink-600';
+            document.getElementById('btn-submit-post-label').textContent = 'Update Entry';
+
+            document.getElementById('post-input-title').value = post.title || '';
+            document.getElementById('post-input-caption').value = post.caption || '';
+            document.getElementById('post-select-mood').value = post.mood || '😊';
+            document.getElementById('post-input-tags').value = post.tags || '';
+
+            // Handle Image Preview if attached
+            if (post.image) {
+                currentPostImageData = post.image;
+                document.getElementById('post-image-preview').src = post.image;
+                document.getElementById('post-image-preview-box').classList.remove('hidden');
+            } else {
+                currentPostImageData = null;
+                document.getElementById('post-image-preview-box').classList.add('hidden');
+            }
+
+            document.getElementById('modal-create-post').classList.remove('hidden');
+        };
+
         window.handleDeletePost = async function(postId) {
             if (!isTeacherLoggedIn || !db) return;
             try {
@@ -737,7 +776,7 @@
                 label.textContent = 'Logout';
                 icon.className = 'fa-solid fa-arrow-right-from-bracket text-rose-500';
                 badge.classList.remove('hidden');
-                statusDesc.textContent = 'Welcome Teacher! You can now post entries and moderate replies.';
+                statusDesc.textContent = 'Welcome Teacher! You can now post entries, edit posts, and moderate replies.';
             } else {
                 label.textContent = 'Teacher Login';
                 icon.className = 'fa-solid fa-lock text-slate-500';
@@ -751,17 +790,35 @@
             const fileInput = document.getElementById('post-image-file');
             const dropZone = document.getElementById('post-drop-zone');
 
+            const resetModalState = () => {
+                editingPostId = null;
+                document.getElementById('post-modal-title').textContent = 'Create Live Entry';
+                document.getElementById('post-modal-icon').className = 'fa-solid fa-square-plus text-pink-600';
+                document.getElementById('btn-submit-post-label').textContent = 'Share Live Post';
+                document.getElementById('form-create-post').reset();
+                currentPostImageData = null;
+                clearSketchCanvas();
+                document.getElementById('post-image-preview-box').classList.add('hidden');
+            };
+
             document.getElementById('btn-create-post').addEventListener('click', () => {
                 if (!isTeacherLoggedIn) {
                     showToast('Please log in with teacher password first!', 'error');
                     document.getElementById('modal-login').classList.remove('hidden');
                     return;
                 }
+                resetModalState();
                 createModal.classList.remove('hidden');
             });
 
-            document.getElementById('btn-close-create').addEventListener('click', () => createModal.classList.add('hidden'));
-            document.getElementById('btn-cancel-post').addEventListener('click', () => createModal.classList.add('hidden'));
+            document.getElementById('btn-close-create').addEventListener('click', () => {
+                createModal.classList.add('hidden');
+                resetModalState();
+            });
+            document.getElementById('btn-cancel-post').addEventListener('click', () => {
+                createModal.classList.add('hidden');
+                resetModalState();
+            });
 
             // Media Tab Switching
             const tabUpload = document.getElementById('post-tab-upload');
@@ -824,7 +881,7 @@
 
             document.getElementById('btn-sketch-clear').addEventListener('click', clearSketchCanvas);
 
-            // Form Submit - Create Cloud Post
+            // Form Submit - Create or Update Cloud Post
             document.getElementById('form-create-post').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const title = document.getElementById('post-input-title').value.trim();
@@ -842,37 +899,48 @@
                     return;
                 }
 
-                const postId = 'post_' + Date.now();
-                const postData = {
-                    id: postId,
-                    title: title,
-                    caption: caption,
-                    mood: mood,
-                    tags: tags,
-                    image: currentPostImageData,
-                    likes: 0,
-                    comments: [],
-                    gmt7Date: getGMT7DateString(),
-                    timestamp: Date.now()
-                };
-
                 try {
                     if (!db) {
                         throw new Error("Cloud database not connected");
                     }
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
-                    await setDoc(docRef, postData);
-                    showToast('Post published live to classroom feed!', 'success');
 
-                    // Reset form
-                    document.getElementById('form-create-post').reset();
-                    currentPostImageData = null;
-                    clearSketchCanvas();
-                    document.getElementById('post-image-preview-box').classList.add('hidden');
+                    if (editingPostId) {
+                        // Update existing post
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', editingPostId);
+                        await updateDoc(docRef, {
+                            title: title,
+                            caption: caption,
+                            mood: mood,
+                            tags: tags,
+                            image: currentPostImageData || null
+                        });
+                        showToast('Post updated live!', 'success');
+                    } else {
+                        // Create new post
+                        const postId = 'post_' + Date.now();
+                        const postData = {
+                            id: postId,
+                            title: title,
+                            caption: caption,
+                            mood: mood,
+                            tags: tags,
+                            image: currentPostImageData,
+                            likes: 0,
+                            comments: [],
+                            gmt7Date: getGMT7DateString(),
+                            timestamp: Date.now()
+                        };
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+                        await setDoc(docRef, postData);
+                        showToast('Post published live to classroom feed!', 'success');
+                    }
+
+                    // Reset form & hide modal
+                    resetModalState();
                     createModal.classList.add('hidden');
                 } catch (err) {
-                    console.error("Publish post error:", err);
-                    showToast('Publish failed: ' + (err.message || 'Cloud storage issue'), 'error');
+                    console.error("Save post error:", err);
+                    showToast('Save failed: ' + (err.message || 'Cloud storage issue'), 'error');
                 }
             });
         }
